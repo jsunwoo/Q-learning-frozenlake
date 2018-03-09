@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from gym.envs.registration import register
 import random as pr
 
+# random arguments of the maxima
 def rargmax(vector):
     m = np.amax(vector)
     indices = np.nonzero(vector == m)[0]
@@ -24,27 +25,63 @@ env.render()
 # space : 16, action : 4
 Q = np.zeros([env.observation_space.n, env.action_space.n])
 
+# Discount factor (to find optimal(shortest) path)
+dis = 0.99
 # Set learning parameters
 num_episodes = 100
-
 rList = []
+
+#a = np.arange(6).reshape(2,3)
+#print(a)
+#print(np.argmax(a))
+
+
 for i in range(num_episodes):
     # Observe current state
     state = env.reset()
     rAll = 0
     done = False
     while not done:
-        # if Q values are same then pick the way randomly
-        action = rargmax(Q[state, :])
+        e= np.random.rand(1)
+        if e < 0.2:
+            action = rargmax(Q[state, :])
+        else:
+            action = env.action_space.sample()
+        print(e, action)
+
+        # action choose with decaying noise (to explore other way)
+        #action = np.argmax(Q[state, :] + np.random.randn(1, env.action_space.n) / (i + 1))
+
+        #print(Q)
+
+        #if np.random.rand(1) < e:
+        #e = np.random.rand(1)
+
+        #action = rargmax(Q[state, :])
+        #print(Q[state, :])
+        #print(action)
+        #print(np.argmax(Q[state, :]))
+        #print(np.random.randn(1, env.action_space.n))
+        #print(Q[state, :] + np.random.randn(1, env.action_space.n) / (i + 1))
+
         # update new information
         new_state, reward, done, info = env.step(action)
-        # Q(s,a) <- r + maxQ(s', a')
-        Q[state, action] = reward + np.max(Q[new_state, :])
+
+        # Q(s,a) <- r + dis * maxQ(s', a')
+        Q[state, action] = reward + dis * np.max(Q[new_state, :])
         rAll += reward
+
         # s <- s'
         state = new_state
+        print "\nLeft(0) Down(1) Right(2) Up(3)",
+        for o in range(16):
+            if o % 4 == 0:
+                print ''
+            print "(",
+            for a in range(4):
+                print("%.2f" % Q[o][a]),
+            print ")",
     rList.append(rAll)
-    print(" Left Down Right Up")
-    print(Q)
 
-print("Success rate : " + str(sum(rList)/num_episodes))
+
+print("\nSuccess rate : " + str(sum(rList)/num_episodes))
