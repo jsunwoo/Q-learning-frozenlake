@@ -11,7 +11,7 @@ Q = np.zeros([env.observation_space.n, env.action_space.n])
 
 # Set learning parameters
 dis = 0.9
-num_episodes = 1000
+num_episodes = 2000
 learning_rate = 0.85
 
 rList = []
@@ -29,8 +29,11 @@ for i in range(num_episodes):
         # Update new information
         new_state, reward, done, info = env.step(action)
 
-        # Q(s,a) <- r + dis * maxQ(s', a')
-        Q[state, action] = reward + dis * np.max(Q[new_state, :])
+        # Q(s,a) <- (1-a) * Q(s,a) + a * (r + dis * maxQ(s', a'))
+        # Keep 90% of my knowledge and use 10% of Q's direction
+        Q[state, action] = (1 - learning_rate) * Q[state, action]\
+                           + learning_rate * (reward + dis * np.max(Q[new_state, :]))
+
         rAll += reward
 
         # s <- s'
