@@ -3,37 +3,28 @@ import numpy as np
 from gym.envs.registration import register
 import random as pr
 
-register(
-    id='FrozenLake-v3',
-    entry_point='gym.envs.toy_text:FrozenLakeEnv',
-    kwargs={'map_name': '4x4', 'is_slippery': False}
-)
+# Set slippery mode
+env = gym.make("FrozenLake-v0")
 
-env = gym.make("FrozenLake-v3")
-
-# initial board
-env.render()
-
-# initialize table with all zeros
-# space : 16, action : 4
+# Initialize table with all zeros
 Q = np.zeros([env.observation_space.n, env.action_space.n])
 
-# Discount factor (to find optimal(shorter) path)
-dis = 0.9
-
 # Set learning parameters
+dis = 0.9
 num_episodes = 1000
-rList = []
+learning_rate = 0.85
 
+rList = []
 for i in range(num_episodes):
     # Observe current state
     state = env.reset()
     rAll = 0
     done = False
+
+    # The Q-Table learning algorithm
     while not done:
         # Choose an action by greedily (with noise)
         action = np.argmax(Q[state, :] + np.random.randn(1, env.action_space.n) / (i + 1))
-        print(action)
 
         # Update new information
         new_state, reward, done, info = env.step(action)
@@ -45,7 +36,6 @@ for i in range(num_episodes):
         # s <- s'
         state = new_state
     rList.append(rAll)
-    print "\n\n"
 
 print "Left(0) Down(1) Right(2) Up(3)\n",
 for o in range(16):
