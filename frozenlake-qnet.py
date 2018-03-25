@@ -9,19 +9,19 @@ import matplotlib.pyplot as plt
 env = gym.make("FrozenLake-v0")
 
 # Input and output size based on the Env
-input_size = env.observation_space.n
-output_size = env.action_space.n
+input_size = env.observation_space.n    # 16
+output_size = env.action_space.n    # 4
 learning_rate = 0.1
 
 # These lines establish the feed-forward part of the network used to choose actions
-X = tf.placeholder(shape=[1, input_size], dtype=tf.float32)
-W = tf.Variable(tf.random_uniform([input_size, output_size], 0, 0.01))
+X = tf.placeholder(shape=[1, input_size], dtype=tf.float32)     # (1 * 16)
+W = tf.Variable(tf.random_uniform([input_size, output_size], 0, 0.01))  # Initialize with random var (16 * 4)
 
-Qpred = tf.matmul(X, W) # Q-prediction
-Y = tf.placeholder(shape=[1, output_size], dtype=tf.float32)
+Qpred = tf.matmul(X, W)     # Q-prediction (1 * 16) * (16 * 4) = (1 * 4)
+Y = tf.placeholder(shape=[1, output_size], dtype=tf.float32)    # (1 * 4)
 
-loss = tf.reduce_sum(tf.square(Y - Qpred))
-train = tf.train.GradientDescentOptimizer(learning_rate=learning_rate).minimize(loss)
+loss = tf.reduce_sum(tf.square(Y - Qpred))  # cost(W) = (Ws - y) ^ 2
+train = tf.train.GradientDescentOptimizer(learning_rate=learning_rate).minimize(loss)   # Minimize cost value
 
 # Set other parameters
 dis = 0.9
@@ -47,7 +47,7 @@ with tf.Session() as sess:
         # The Q-Network training
         while not done:
             # Choose an action by greedily (with e chance of random action)
-            Qs = sess.run(Qpred, feed_dict={X: one_hot(s)})
+            Qs = sess.run(Qpred, feed_dict={X: one_hot(s)})     # Same as asking to Q-table
             if np.random.rand(1) < e:
                 action = env.action_space.sample()
             else:
@@ -58,10 +58,10 @@ with tf.Session() as sess:
 
             if done:
                 # Update Q, and no Qs+1, since it's a terminal state
-                Qs[0, action] = reward
+                Qs[0, action] = reward      # row = 0, col = action
             else:
                 # Obtain the Qs1 values by feeding the new state through our network
-                Qs1 = sess.run(Qpred, feed_dict={X: one_hot(s1)})
+                Qs1 = sess.run(Qpred, feed_dict={X: one_hot(s1)})   # Same as asking to Q-table
                 # Update Q
                 Qs[0, action] = reward + dis * np.max(Qs1)
 
